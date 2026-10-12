@@ -1,152 +1,360 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="dark">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>约 - 个人主页</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>约 | 个人主页</title>
+    <style>
+        :root {
+            --bg-color: #050510;
+            --primary-color: #00f3ff; /* 霓虹青 */
+            --secondary-color: #bc13fe; /* 霓虹紫 */
+            --text-color: #e0e0e0;
+            --card-bg: rgba(20, 20, 35, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 动态背景 Canvas */
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* 主容器 */
+        .container {
+            width: 90%;
+            max-width: 800px;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 个人资料卡片 */
+        .profile-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
+        }
+
+        /* 顶部装饰条 */
+        .profile-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+        }
+
+        /* 头像区域 */
+        .avatar-container {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1.5rem;
+            position: relative;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2a2a40, #1a1a2e);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 15px var(--primary-color);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 头像周围的旋转环 */
+        .avatar-ring {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+            border: 2px dashed var(--secondary-color);
+            animation: spin 10s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 名字样式 */
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #fff, var(--primary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+        }
+
+        /* 标语/描述 */
+        .tagline {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+            font-family: 'Courier New', Courier, monospace; /* 代码字体风格 */
+        }
+
+        /* 联系方式列表 */
+        .contact-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .contact-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .contact-item:hover {
+            background: rgba(0, 243, 255, 0.1);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: var(--primary-color);
+        }
+
+        /* 底部版权/侵权提示 */
+        .footer-note {
+            margin-top: 3rem;
+            font-size: 0.8rem;
+            color: #888;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1rem;
+            line-height: 1.6;
+        }
+
+        /* 简单的打字机光标效果 */
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1.2rem;
+            background-color: var(--primary-color);
+            animation: blink 1s infinite;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 600px) {
+            .profile-card {
+                padding: 2rem 1.5rem;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 背景画布 -->
+    <canvas id="canvas-bg"></canvas>
+
+    <div class="container">
+        <div class="profile-card">
+            <div class="avatar-container">
+                <div class="avatar-ring"></div>
+                <div class="avatar">约</div>
+            </div>
+            
+            <h1>约</h1>
+            <p class="tagline">> 探索数字边界<span class="cursor"></span></p>
+
+            <div class="contact-list">
+                <!-- QQ -->
+                <a href="tencent://message/?uin=2622713235&site=&menu=yes" class="contact-item">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <span>QQ: 2622713235</span>
+                </a>
+
+                <!-- Email -->
+                <a href="mailto:2622713235@qq.com" class="contact-item">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                    </svg>
+                    <span>Email: 2622713235@qq.com</span>
+                </a>
+            </div>
+
+            <div class="footer-note">
+                所有内容均搜集自网络公开平台，仅作分享与交流使用，版权归原作者所有
+            </div>
+        </div>
+    </div>
+
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        darkbg: '#0a0a0c',
-                        cardbg: '#141418',
-                        cardhover: '#1c1c24',
-                        accent: '#3b82f6',
-                        accenthover: '#2563eb'
+        // 动态粒子背景脚本
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+
+        let particlesArray;
+
+        // 设置 Canvas 尺寸
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // 处理窗口大小调整
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            init();
+        });
+
+        // 粒子类
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.directionX = (Math.random() * 0.4) - 0.2; // 缓慢移动
+                this.directionY = (Math.random() * 0.4) - 0.2;
+                this.size = Math.random() * 2 + 1;
+                this.color = '#00f3ff';
+            }
+
+            // 绘制粒子
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = 0.5; // 透明度
+                ctx.fill();
+            }
+
+            // 更新位置
+            update() {
+                if (this.x > canvas.width || this.x < 0) {
+                    this.directionX = -this.directionX;
+                }
+                if (this.y > canvas.height || this.y < 0) {
+                    this.directionY = -this.directionY;
+                }
+
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        // 初始化粒子
+        function init() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 9000; // 根据屏幕面积决定粒子数量
+            for (let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        // 连接粒子的线条
+        function connect() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                                 + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    
+                    if (distance < (canvas.width/7) * (canvas.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        ctx.strokeStyle = 'rgba(0, 243, 255,' + opacityValue * 0.2 + ')'; // 青色连线
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
                     }
                 }
             }
         }
-    </script>
-    <!-- Font Inter & PingFang SC -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #0a0a0c;
-            color: #f3f4f6;
-            overflow-x: hidden;
-        }
-        /* Glassmorphism background blur circles */
-        .glow-orb {
-            position: absolute;
-            filter: blur(120px);
-            z-index: 0;
-            opacity: 0.15;
-            pointer-events: none;
-        }
-    </style>
-</head>
-<body class="min-h-screen flex items-center justify-center relative px-4 py-12">
 
-    <!-- Background Ambient Glow Orbs -->
-    <div class="glow-orb w-96 h-96 bg-blue-600 rounded-full top-10 left-1/4"></div>
-    <div class="glow-orb w-96 h-96 bg-indigo-500 rounded-full bottom-10 right-1/4"></div>
-
-    <!-- Main Container -->
-    <main class="w-full max-w-md relative z-10">
-        <div class="bg-cardbg/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl transition-all duration-300 hover:border-white/20">
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            <!-- Avatar Section -->
-            <div class="flex flex-col items-center text-center">
-                <div class="relative group mb-6">
-                    <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full blur opacity-70 group-hover:opacity-100 transition duration-500"></div>
-                    <div class="relative w-24 h-24 rounded-full bg-[#1e1e24] border-2 border-white/10 flex items-center justify-center text-3xl font-bold text-white shadow-inner">
-                        约
-                    </div>
-                </div>
-
-                <!-- Name & Bio -->
-                <h1 class="text-2xl font-bold tracking-tight text-white mb-2">约</h1>
-                <p class="text-sm font-medium text-neutral-400 max-w-xs leading-relaxed mb-8">
-                    一个默默无闻的财产搬运工。
-                </p>
-            </div>
-
-            <!-- Contact & Social Links -->
-            <div class="space-y-3">
-                <!-- QQ Link (with copy feature) -->
-                <button onclick="copyQQ()" class="w-full group flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-white/10 transition-all duration-300 text-left">
-                    <div class="flex items-center space-x-3.5">
-                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform duration-300">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.84 3.44 8.87 8 9.76V15H8v-3h2V9.5C10 7.57 11.35 6 13.5 6c1.03 0 1.91.08 2.17.11v2.5h-1.49c-1.08 0-1.29.51-1.29 1.26V12h3l-.4 3h-2.6v6.8f10 5.16 10-10C22 6.48 17.52 2 12 2z"/></svg>
-                        </div>
-                        <div>
-                            <div class="text-xs text-neutral-400 font-medium">QQ 交流</div>
-                            <div class="text-sm font-semibold text-white tracking-wide">2622713235</div>
-                        </div>
-                    </div>
-                    <span id="copy-tip" class="text-xs text-neutral-400 group-hover:text-blue-400 transition-colors">点击复制</span>
-                </button>
-
-                <!-- Email Link -->
-                <a href="mailto:2622713235@qq.com" class="w-full group flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-white/10 transition-all duration-300 text-left">
-                    <div class="flex items-center space-x-3.5">
-                        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-transform duration-300">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                        </div>
-                        <div>
-                            <div class="text-xs text-neutral-400 font-medium">电子邮箱</div>
-                            <div class="text-sm font-semibold text-white tracking-wide">2622713235@qq.com</div>
-                        </div>
-                    </div>
-                    <span class="text-xs text-neutral-400 group-hover:text-indigo-400 transition-colors">发送邮件</span>
-                </a>
-            </div>
-
-            <!-- Footer Info -->
-            <div class="mt-8 pt-6 border-t border-white/5 text-center space-y-2">
-                <p class="text-xs text-neutral-500">如有侵权请联系 QQ：2622713235</p>
-                <p class="text-xs text-neutral-600">&copy; 2026 约. All rights reserved.</p>
-            </div>
-        </div>
-    </main>
-
-    <!-- Toast Notification for Copy -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-neutral-900 border border-white/10 text-white text-xs px-4 py-2.5 rounded-full shadow-2xl opacity-0 transition-all duration-300 pointer-events-none z-50 flex items-center space-x-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-        <span id="toast-msg">已复制 QQ 号到剪贴板</span>
-    </div>
-
-    <!-- JavaScript Interactions -->
-    <script>
-        function copyQQ() {
-            const qqText = "2622713235";
-            const textarea = document.createElement("textarea");
-            textarea.value = qqText;
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand('copy');
-                showToast("已成功复制 QQ 号：2622713235");
-                const tip = document.getElementById("copy-tip");
-                tip.textContent = "已复制";
-                tip.classList.add("text-emerald-400");
-                setTimeout(() => {
-                    tip.textContent = "点击复制";
-                    tip.classList.remove("text-emerald-400");
-                }, 2000);
-            } catch (err) {
-                showToast("复制失败，请手动复制");
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
             }
-            document.body.removeChild(textarea);
+            connect();
         }
 
-        function showToast(message) {
-            const toast = document.getElementById("toast");
-            const msg = document.getElementById("toast-msg");
-            msg.textContent = message;
-            toast.classList.remove("opacity-0", "pointer-events-none");
-            toast.classList.add("opacity-100");
-            setTimeout(() => {
-                toast.classList.remove("opacity-100");
-                toast.classList.add("opacity-0", "pointer-events-none");
-            }, 2500);
-        }
+        init();
+        animate();
     </script>
 </body>
 </html>
